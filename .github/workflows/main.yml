@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - develop
+    tags:
+      - 'v*' # Déclenche le workflow lors du push d'un tag Git (ex: v1.0.0)
   pull_request:
 
 jobs:
@@ -12,12 +14,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -36,6 +38,8 @@ jobs:
 
   build-and-push-docker-image:
     needs: test-backend
+    # Le job s'exécute uniquement sur main ou lors de la création d'un tag v*
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
@@ -47,23 +51,62 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # --- 1. Backend (Simple API) ---
+      - name: Extract metadata for Simple API
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/tp-devops-simple-api
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Build image and push backend
         uses: docker/build-push-action@v6
         with:
           context: ./simple-api
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-simple-api:latest
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+
+      # --- 2. Database ---
+      - name: Extract metadata for Database
+        id: meta-db
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/tp-devops-database
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build image and push database
         uses: docker/build-push-action@v6
         with:
           context: ./database
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-database:latest
+          push: true
+          tags: ${{ steps.meta-db.outputs.tags }}
+          labels: ${{ steps.meta-db.outputs.labels }}
+
+      # --- 3. HTTP Server (Apache) ---
+      - name: Extract metadata for HTTPD
+        id: meta-httpd
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/tp-devops-httpd
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build image and push httpd
         uses: docker/build-push-action@v6
         with:
           context: ./http-server
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKER_USERNAME }}/tp-devops-httpd:latest
+          push: true
+          tags: ${{ steps.meta-httpd.outputs.tags }}
+          labels: ${{ steps.meta-httpd.outputs.labels }}
