@@ -30,7 +30,7 @@ services:
       - app-network
     depends_on:
       - simpleapi
-      - front
+      - frontend
 
 networks:
   app-network:
