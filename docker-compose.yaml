@@ -23,14 +23,17 @@ services:
       - app-network
 
   httpd:
-    build: "http-server"
+    build: ./HttpServer
     ports:
       - "80:80"
     networks:
-      - my-network
+      - app-network
+    depends_on:
+      - simpleapi
+      - front
 
 networks:
-  my-network:
+  app-network:
 
 volumes:
   db-volume :
