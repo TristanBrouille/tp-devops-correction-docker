@@ -1,0 +1,10 @@
+---
+- name: Run HTTPD Reverse Proxy container
+  docker_container:
+    name: httpd-proxy
+    image: tristanbrouille/tp-devops-httpd:latest
+    networks:
+      - name: app-network
+    ports:
+      - "80:80"
+    restart_policy: always
