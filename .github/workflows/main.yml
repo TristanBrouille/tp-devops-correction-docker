@@ -110,6 +110,24 @@ jobs:
           tags: ${{ steps.meta-httpd.outputs.tags }}
           labels: ${{ steps.meta-httpd.outputs.labels }}
 
+      # --- 4. Frontend ---
+      - name: Extract metadata for Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/tp-devops-frontend
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,format=short
+
+      - name: Build image and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+
   # --- 4. Continuous Deployment ---
   deploy:
     needs: build-and-push-docker-image

@@ -1,14 +1,11 @@
 ---
 - name: Run Backend App container
   docker_container:
-    name: backend-app
+    name: simple-api
     image: tristanbrouille/tp-devops-simple-api:latest
     networks:
       - name: app-network
     env:
-      ENV_DB_HOST: postgres-db
-      ENV_DB_PORT: "5432"
-      ENV_DB_NAME: db
-      ENV_DB_USER: usr
-      ENV_DB_PASSWORD: pwd
+      DATABASE_HOST: database
+      DATABASE_PASSWORD: pwd
     restart_policy: always
