@@ -7,7 +7,7 @@ services:
     volumes:
       - db-volume:/var/lib/postgresql/data
     networks:
-      - my-network
+      - app-network
 
   simple-api:
     build: "simple-api"
@@ -15,7 +15,7 @@ services:
       - DATABASE_HOST=database
       - DATABASE_PASSWORD=pwd
     networks:
-      - my-network
+      - app-network
 
   front:
     build: ./Frontend
@@ -30,7 +30,7 @@ services:
       - app-network
     depends_on:
       - simpleapi
-      - frontend
+      - front
 
 networks:
   app-network:
