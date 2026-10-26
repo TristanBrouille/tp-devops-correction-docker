@@ -17,6 +17,11 @@ services:
     networks:
       - my-network
 
+  front:
+    build: ./Frontend
+    networks:
+      - app-network
+
   httpd:
     build: "http-server"
     ports:
