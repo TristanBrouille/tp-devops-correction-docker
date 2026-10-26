@@ -6,6 +6,6 @@
     networks:
       - name: app-network
     env:
-      DATABASE_HOST: database
+      DATABASE_HOST: postgres-db
       DATABASE_PASSWORD: pwd
     restart_policy: always
