@@ -3,6 +3,8 @@
   docker_container:
     name: httpd-proxy
     image: tristanbrouille/tp-devops-httpd:latest
+    pull: true         # <--- Indispensable pour récupérer l'image mise à jour sur DockerHub
+    recreate: true     # <--- Force la recréation du conteneur avec la nouvelle image
     networks:
       - name: app-network
     ports:
